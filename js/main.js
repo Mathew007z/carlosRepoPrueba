@@ -2,10 +2,10 @@ let carro = [];
 const counterCart = document.getElementById("counterCart");
 const navbarEmail = document.querySelector(".navbar-email");
 const desktopMenu = document.querySelector(".desktop-menu");
-const cantidadCounter = document.querySelector('.cantidadCounter')
+const cantidadCounter = document.querySelector(".cantidadCounter");
 const menuBurger = document.querySelector(".menu");
 const mobileMenu = document.querySelector(".mobile-menu");
-
+let productsList = [];
 const menuCarritoIcon = document.querySelector(".navbar-shopping-cart");
 const asideCar = document.querySelector("#shoppingCartContainer");
 const cardsContainer = document.querySelector(".cards-container");
@@ -33,28 +33,12 @@ function toggleMobileMenu() {
   asideCar.classList.add("inactive");
 }
 
-// function toggleMobileMenu() {
-//   const isAsideClosed = aside.classList.contains("inactive");
-//   if (!isAsideClosed) {
-//     aside.classList.add("inactive");
-//   }
-//   mobileMenu.classList.toggle("inactive");
-// }
-// function toggleCarritoAside() {
-//   const isMobileMenuClosed = mobileMenu.classList.contains("inactive");
-//   if (!isMobileMenuClosed) {
-//     mobileMenu.classList.add("inactive");
-//   }
-//   aside.classList.toggle("inactive");
-// }
 function totalProductsCart(arr) {
   counterCart.innerText = arr.reduce(
     (acc, product) => acc + product.cantidad,
     0
   );
 }
-
-
 
 function toggleAsideCar() {
   console.log(carro);
@@ -126,71 +110,49 @@ function toggleAsideCar() {
   mobileMenu.classList.add("inactive");
   asideCar.classList.toggle("inactive");
   desktopMenu.classList.add("inactive");
-  //const isMobileMenuClosed = !mobileMenu.classList.contains("inactive");
-
-  //   const isAsideClosed = !asideCar.classList.contains("inactive");
-
-  //   if (isAsideClosed) {
-  //     //abrir aside carsc
-
-  //   } else {
-  //       asideCar.classList.add("inactive");
-  //     }
-  //   }
-
-  //   if (isMobileMenuClosed) {
-  //   }
 }
 
 const aumentarCantidad = (product) => {
   product.cantidad++;
-  if(product.cantidad > 0) {
+  product.stock--;
+  if (product.cantidad > 0) {
     btnDisminuir.disabled = false;
+  }
+  if (product.stock === 0) {
+    btnAumentar.disabled = true;
   }
   totalProductsCart(carro);
   cantidadCounter.innerText = product.cantidad;
-}
+};
 
 function disminuirCantidad(product) {
   product.cantidad--;
-  product.cantidad === 0 ?  btnDisminuir.disabled = true : false
+  product.stock++;
+  if (product.stock > 0) {
+    btnAumentar.disabled = false;
+  }
+  product.cantidad === 0 ? (btnDisminuir.disabled = true) : false;
   totalProductsCart(carro);
   cantidadCounter.innerText = product.cantidad;
 }
 
+// haciendo que con la function DOMContentLoaded al cargar al APP, se ejecute la data, y la renderizacion de los productos.
+document.addEventListener("DOMContentLoaded", () => {
+  fetchData();
+  renderProduct();
+});
 
-const productsList = [];
-productsList.push({
-  id: 1,
-  name: "Bike",
-  price: 120,
-  image:
-    "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  cantidad: 1,
-  stock: 3,
-});
-productsList.push({
-  id: 2,
-  name: "Pantalla",
-  price: 320,
-  image:
-    "https://images.pexels.com/photos/6476808/pexels-photo-6476808.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-  cantidad: 1,
-  stock: 3,
-});
-productsList.push({
-  id: 3,
-  name: "PC",
-  price: 498,
-  image:
-    "https://images.pexels.com/photos/9072307/pexels-photo-9072307.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-  cantidad: 1,
-  stock: 3,
-});
+// function para traer la data desde el archivo externo con FETCH.
+async function fetchData() {
+  const res = await fetch("/js/data.json");
+  const data = await res.json();
+  productsList = data;
+  renderProduct();
+}
+
 function toggleProductDetail(product) {
   productDetail.classList.remove("inactive");
   productDetail.innerHTML = "";
-  console.log("click prueba");
   const encontrado = productsList.find(
     (findProduct) => findProduct.id === product.id
   );
@@ -231,12 +193,9 @@ function toggleProductDetail(product) {
 
   productDetail.append(divDetClose, imgProDetail, divProInfo);
 }
-// for (product in productsList) {
-//   console.log(product);
-// }
-function renderProduct(arr) {
-  // for (product of arr)
-  arr.forEach((product) => {
+
+function renderProduct() {
+  productsList.forEach((product) => {
     const productCard = document.createElement("div");
     productCard.classList.add("product-card");
 
@@ -251,12 +210,7 @@ function renderProduct(arr) {
     productPrice.innerText = "$" + product.price;
     const productName = document.createElement("p");
     productName.innerText = product.name;
-
     productInfoDiv.append(productPrice, productName);
-
-    // productInfoDiv.appendChild(productPrice);
-    // productInfoDiv.appendChild(productName);
-
     const productInfoFigure = document.createElement("figure");
     const btnImg = document.createElement("button");
     btnImg.classList.add("btnImg");
@@ -265,14 +219,10 @@ function renderProduct(arr) {
     btnImg.appendChild(productImgCart);
     productInfoFigure.appendChild(btnImg);
     btnImg.addEventListener("click", () => agregarAlCarrito(product));
-
-    //figure y div dentro de productInfo
     productInfo.appendChild(productInfoDiv);
     productInfo.appendChild(productInfoFigure);
-    //producInfo e img dentro de Productcard
     productCard.appendChild(productImg);
     productCard.appendChild(productInfo);
-
     cardsContainer.appendChild(productCard);
   });
 }
@@ -293,17 +243,5 @@ function agregarAlCarrito(product) {
   }
   counterCart.classList.add("classCounterCart");
   totalProductsCart(carro);
-  // repeat
-  //   ? carro.map((prod) => {
-  //       prod.id === product.id && prod.cantidad++;
-  //       console.log("repetido");
-  //     })
-  //   : carro.push({
-  //       id: product.id,
-  //       img: product.img,
-  //       nombre: product.nombre,
-  //       precio: product.precio,
-  //       cantidad: product.cantidad,
-  //     }) && console.log("NO repetido");
 }
 renderProduct(productsList);
